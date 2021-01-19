@@ -26,6 +26,7 @@
     <select class="form-control" id="adduserPrivs">
       <option value="">Normal User</option>
       <option value="admin">Administrator</option>
+      <option value="nomail">No Mail</option>
     </select>
   </div>
   <button type="submit" class="btn btn-primary">Add User</button>
@@ -157,7 +158,7 @@ function show_users() {
 
           if (user.status == 'inactive') continue;
 
-          var add_privs = ["admin"];
+          var add_privs = ["admin","nomail"];
 
           for (var j = 0; j < user.privileges.length; j++) {
             var p = $("<span><b><span class='name'></span></b> (<a href='#' onclick='mod_priv(this, \"remove\"); return false;' title='Remove Privilege'>remove privilege</a>) |</span>");
@@ -198,6 +199,56 @@ function do_add_user() {
       show_modal_error("Add User", r);
     });
   return false;
+}
+
+function users_set_nomail(nomail, elem) {
+  var email = $(elem).parents('tr').attr('data-email');
+
+  if (nomail) {
+    show_modal_confirm(
+      "Disable Mail",
+      $("<p>Are you sure you want to disable mail entrance for <b>" + email + "</b>?</p>"),
+      "Disable",
+      function () {
+         api(
+	   "/mail/users/nomail",
+	   "POST",
+	   {
+             nomail: "true",
+	     email: email
+	   },
+	   function(r) {
+             // Responses are multiple lines of pre-formatted text.
+             show_modal_error("Remove User", $("<pre/>").text(r));
+             show_users();
+           },
+           function(r) {
+             show_modal_error("Remove User", r);
+           });
+       });
+  } else {
+    show_modal_confirm(
+      "Enable Mail",
+      $("<p>Are you sure you want to enable mail entrance for <b>" + email + "</b>?</p>"),
+      "Enable",
+      function () {
+         api(
+           "/mail/users/nomail",
+           "POST",
+           {
+             nomail: "false",
+             email: email
+           },
+           function(r) {
+             // Responses are multiple lines of pre-formatted text.
+             show_modal_error("Remove User", $("<pre/>").text(r));
+             show_users();
+           },
+           function(r) {
+             show_modal_error("Remove User", r);
+           });
+       });
+  }
 }
 
 function users_set_password(elem) {
@@ -261,8 +312,12 @@ function users_remove(elem) {
 }
 
 function mod_priv(elem, add_remove) {
+  console.log(elem);
   var email = $(elem).parents('tr').attr('data-email');
-  var priv = $(elem).parents('td').find('.name').text();
+  var priv = $(elem).find('.name').text();
+  if (priv == "") {
+    var priv = $(elem).prev().find('.name').text();
+  }
 
   // can't remove your own admin access
   if (priv == "admin" && add_remove == "remove" && api_credentials != null && email == api_credentials[0]) {
@@ -273,7 +328,7 @@ function mod_priv(elem, add_remove) {
   var add_remove1 = add_remove.charAt(0).toUpperCase() + add_remove.substring(1);
   show_modal_confirm(
     "Modify Privileges",
-    $("<p>Are you sure you want to " + add_remove + " the " + priv + " privilege for <b>" + email + "</b>?</p>"),
+    $("<p>Are you sure you want to " + add_remove + " the <b>" + priv + "</b> privilege for <b>" + email + "</b>?</p>"),
     add_remove1,
     function() {
       api(

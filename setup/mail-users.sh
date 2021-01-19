@@ -116,7 +116,7 @@ EOF
 # SQL statement to check if we handle incoming mail for a user.
 cat > /etc/postfix/virtual-mailbox-maps.cf << EOF;
 dbpath=$db_path
-query = SELECT 1 FROM users WHERE email='%s'
+query = SELECT 1 FROM users WHERE email='%s' AND privileges NOT LIKE '%%nomail%%'
 EOF
 
 # SQL statement to rewrite an email address if an alias is present.

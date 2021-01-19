@@ -201,56 +201,6 @@ function do_add_user() {
   return false;
 }
 
-function users_set_nomail(nomail, elem) {
-  var email = $(elem).parents('tr').attr('data-email');
-
-  if (nomail) {
-    show_modal_confirm(
-      "Disable Mail",
-      $("<p>Are you sure you want to disable mail entrance for <b>" + email + "</b>?</p>"),
-      "Disable",
-      function () {
-         api(
-	   "/mail/users/nomail",
-	   "POST",
-	   {
-             nomail: "true",
-	     email: email
-	   },
-	   function(r) {
-             // Responses are multiple lines of pre-formatted text.
-             show_modal_error("Remove User", $("<pre/>").text(r));
-             show_users();
-           },
-           function(r) {
-             show_modal_error("Remove User", r);
-           });
-       });
-  } else {
-    show_modal_confirm(
-      "Enable Mail",
-      $("<p>Are you sure you want to enable mail entrance for <b>" + email + "</b>?</p>"),
-      "Enable",
-      function () {
-         api(
-           "/mail/users/nomail",
-           "POST",
-           {
-             nomail: "false",
-             email: email
-           },
-           function(r) {
-             // Responses are multiple lines of pre-formatted text.
-             show_modal_error("Remove User", $("<pre/>").text(r));
-             show_users();
-           },
-           function(r) {
-             show_modal_error("Remove User", r);
-           });
-       });
-  }
-}
-
 function users_set_password(elem) {
   var email = $(elem).parents('tr').attr('data-email');
 
@@ -312,11 +262,10 @@ function users_remove(elem) {
 }
 
 function mod_priv(elem, add_remove) {
-  console.log(elem);
   var email = $(elem).parents('tr').attr('data-email');
   var priv = $(elem).find('.name').text();
   if (priv == "") {
-    var priv = $(elem).prev().find('.name').text();
+    priv = $(elem).prev().find('.name').text();
   }
 
   // can't remove your own admin access
